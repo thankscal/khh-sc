@@ -465,8 +465,146 @@
         createPersonShiftSummary(person);
     }
     
-    function createPersonShiftSummary(personData) { const container = document.getElementById('shiftSummaryContent'); if(!container) return; container.innerHTML=''; const daysInMonth = new Date(scheduleYear, scheduleMonth, 0).getDate(); let shiftCounts={}; let workShiftsSet=new Set(), companyShiftsSet=new Set(), personalShiftsSet=new Set(); for(let d=1;d<=daysInMonth;d++){ let sd=personData.shifts[d]; if(sd && sd.shift){ let code=sd.shift; shiftCounts[code]=(shiftCounts[code]||0)+1; if(holidayShifts.includes(code)){ if(companyHolidays.includes(code)) companyShiftsSet.add(code); else personalShiftsSet.add(code); } else workShiftsSet.add(code); } } let workShiftsList=Array.from(workShiftsSet); workShiftsList.sort((a,b)=>getShiftStartMinutes(a)-getShiftStartMinutes(b)); let companyList=[], personalList=[]; for(let h of companyHolidays) if(companyShiftsSet.has(h)) companyList.push(h); personalList=Array.from(personalShiftsSet).sort(); let workTotal=0, companyTotal=0, personalTotal=0; for(let s of workShiftsList) workTotal+=shiftCounts[s]; for(let s of companyList) companyTotal+=shiftCounts[s]; for(let s of personalList) personalTotal+=shiftCounts[s]; function appendShiftItem(shift,cnt,showDesc=true){ if(cnt===0) return; let color=shiftColors[shift]||{r:128,g:128,b:128}; let item=document.createElement('div'); item.className='summary-item'; item.style.borderLeftColor=`rgb(${color.r},${color.g},${color.b})`; let desc=shiftDescriptions[shift]||(globalSpecialShifts.has(shift)?'特殊班型':''); let displayText=showDesc?`${shift} ${desc}`:shift; item.innerHTML=`<span class="summary-shift">${displayText}</span><span class="summary-count">${cnt} 天</span>`; container.appendChild(item); } if(workShiftsList.length){ let workTitle=document.createElement('div'); workTitle.className='summary-section-title'; workTitle.innerHTML=`📋 上班：共 ${workTotal} 天`; container.appendChild(workTitle); for(let s of workShiftsList) appendShiftItem(s,shiftCounts[s],true); } if(companyList.length){ let companyTitle=document.createElement('div'); companyTitle.className='summary-section-title'; companyTitle.innerHTML=`🏢 放假 (公司的假)：共 ${companyTotal} 天`; container.appendChild(companyTitle); for(let s of companyList) appendShiftItem(s,shiftCounts[s],true); } if(companyList.length&&personalList.length){ let divider=document.createElement('div'); divider.className='shift-divider-green'; container.appendChild(divider); } if(personalList.length){ let personalTitle=document.createElement('div'); personalTitle.className='summary-section-title'; personalTitle.innerHTML=`👤 放假 (自己的假)：共 ${personalTotal} 天`; container.appendChild(personalTitle); for(let s of personalList) appendShiftItem(s,shiftCounts[s],true); } if(workShiftsList.length===0&&companyList.length===0&&personalList.length===0){ let emptyMsg=document.createElement('div'); emptyMsg.className='alert alert-light text-center p-3'; emptyMsg.textContent='暫無班表資料'; container.appendChild(emptyMsg); } let totalDays=workTotal+companyTotal+personalTotal; if(totalDays>0){ let totalItem=document.createElement('div'); totalItem.className='summary-item mt-2'; totalItem.style.borderTop='2px solid #4361ee'; totalItem.innerHTML=`<span class="summary-shift fw-bold">📅 總計 (上班+休假)</span><span class="summary-count fw-bold">${totalDays} 天</span>`; container.appendChild(totalItem); } }
+    function createPersonShiftSummary(personData) {
+        const container = document.getElementById('shiftSummaryContent');
+        if (!container) return;
+        container.innerHTML = '';
     
+        const daysInMonth = new Date(scheduleYear, scheduleMonth, 0).getDate();
+    
+        let shiftCounts = {};
+        let workShiftsSet = new Set(), companyShiftsSet = new Set(), personalShiftsSet = new Set();
+    
+        for (let d = 1; d <= daysInMonth; d++) {
+            let sd = personData.shifts[d];
+            if (sd && sd.shift) {
+                let code = sd.shift;
+                shiftCounts[code] = (shiftCounts[code] || 0) + 1;
+                if (holidayShifts.includes(code)) {
+                    if (companyHolidays.includes(code)) companyShiftsSet.add(code);
+                    else personalShiftsSet.add(code);
+                } else {
+                    workShiftsSet.add(code);
+                }
+            }
+        }
+    
+        let workShiftsList = Array.from(workShiftsSet);
+        workShiftsList.sort((a, b) => getShiftStartMinutes(a) - getShiftStartMinutes(b));
+        let companyList = [], personalList = [];
+        for (let h of companyHolidays) if (companyShiftsSet.has(h)) companyList.push(h);
+        personalList = Array.from(personalShiftsSet).sort();
+    
+        let workTotal = 0, companyTotal = 0, personalTotal = 0;
+        for (let s of workShiftsList) workTotal += shiftCounts[s];
+        for (let s of companyList) companyTotal += shiftCounts[s];
+        for (let s of personalList) personalTotal += shiftCounts[s];
+    
+        function appendShiftItem(shift, cnt, showDesc = true) {
+            if (cnt === 0) return;
+            let color = shiftColors[shift] || { r: 128, g: 128, b: 128 };
+            let item = document.createElement('div');
+            item.className = 'summary-item';
+            item.style.borderLeftColor = `rgb(${color.r},${color.g},${color.b})`;
+            let desc = shiftDescriptions[shift] || (globalSpecialShifts.has(shift) ? '特殊班型' : '');
+            let displayText = showDesc ? `${shift} ${desc}` : shift;
+            item.innerHTML = `<span class="summary-shift">${displayText}</span><span class="summary-count">${cnt} 天</span>`;
+            container.appendChild(item);
+        }
+    
+        if (workShiftsList.length) {
+            let workTitle = document.createElement('div');
+            workTitle.className = 'summary-section-title';
+            workTitle.innerHTML = `📋 上班：共 ${workTotal} 天`;
+            container.appendChild(workTitle);
+            for (let s of workShiftsList) appendShiftItem(s, shiftCounts[s], true);
+        }
+    
+        if (companyList.length) {
+            let companyTitle = document.createElement('div');
+            companyTitle.className = 'summary-section-title';
+            companyTitle.innerHTML = `🏢 放假 (公司的假)：共 ${companyTotal} 天`;
+            container.appendChild(companyTitle);
+            for (let s of companyList) appendShiftItem(s, shiftCounts[s], true);
+        }
+    
+        if (companyList.length && personalList.length) {
+            let divider = document.createElement('div');
+            divider.className = 'shift-divider-green';
+            container.appendChild(divider);
+        }
+    
+        if (personalList.length) {
+            let personalTitle = document.createElement('div');
+            personalTitle.className = 'summary-section-title';
+            personalTitle.innerHTML = `👤 放假 (自己的假)：共 ${personalTotal} 天`;
+            container.appendChild(personalTitle);
+            for (let s of personalList) appendShiftItem(s, shiftCounts[s], true);
+        }
+    
+        // 連續上班統計（無論是否開啟「顯示連續上班」都計算）
+        let consecutiveSegments = [];
+        let segStart = null;
+        for (let d = 1; d <= daysInMonth; d++) {
+            let sd = personData.shifts[d];
+            let isWork = !!(sd && sd.shift && !holidayShifts.includes(sd.shift));
+            if (isWork) {
+                if (segStart === null) segStart = d;
+            } else {
+                if (segStart !== null) {
+                    let len = d - segStart;
+                    if (len >= 2) consecutiveSegments.push({ start: segStart, end: d - 1, length: len });
+                    segStart = null;
+                }
+            }
+        }
+        if (segStart !== null) {
+            let len = daysInMonth - segStart + 1;
+            if (len >= 2) consecutiveSegments.push({ start: segStart, end: daysInMonth, length: len });
+        }
+    
+        if (consecutiveSegments.length > 0) {
+            let totalConsecutiveDays = consecutiveSegments.reduce((sum, s) => sum + s.length, 0);
+            let maxLen = Math.max(...consecutiveSegments.map(s => s.length));
+    
+            let consTitle = document.createElement('div');
+            consTitle.className = 'summary-section-title';
+            consTitle.style.borderBottomColor = '#ff6b6b';
+            consTitle.style.color = '#c92a2a';
+            consTitle.innerHTML = `🔥 連續上班：共 ${consecutiveSegments.length} 段 / 合計 ${totalConsecutiveDays} 天 / 最長 ${maxLen} 天`;
+            container.appendChild(consTitle);
+    
+            consecutiveSegments.forEach(seg => {
+                let item = document.createElement('div');
+                item.className = 'summary-item';
+                item.style.borderLeftColor = '#ff6b6b';
+                item.style.backgroundColor = '#fff1f0';
+                let dateText = `${seg.start}日 ~ ${seg.end}日`;
+                item.innerHTML = `<span class="summary-shift">📅 ${dateText}</span><span class="summary-count">${seg.length} 天</span>`;
+                container.appendChild(item);
+            });
+    
+            let consDivider = document.createElement('div');
+            consDivider.className = 'shift-divider-green';
+            container.appendChild(consDivider);
+        }
+    
+        if (workShiftsList.length === 0 && companyList.length === 0 && personalList.length === 0) {
+            let emptyMsg = document.createElement('div');
+            emptyMsg.className = 'alert alert-light text-center p-3';
+            emptyMsg.textContent = '暫無班表資料';
+            container.appendChild(emptyMsg);
+        }
+    
+        let totalDays = workTotal + companyTotal + personalTotal;
+        if (totalDays > 0) {
+            let totalItem = document.createElement('div');
+            totalItem.className = 'summary-item mt-2';
+            totalItem.style.borderTop = '2px solid #4361ee';
+            totalItem.innerHTML = `<span class="summary-shift fw-bold">📅 總計 (上班+休假)</span><span class="summary-count fw-bold">${totalDays} 天</span>`;
+            container.appendChild(totalItem);
+        }
+    }
     // 判斷此人此班型是否為正領班
     function getFormalLeaderRole(personName, shiftCode) {
         if (!formalLeaders.has(normalizeName(personName))) return null;
